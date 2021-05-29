@@ -1,0 +1,103 @@
+/* 
+   Tool for Blind Using Ultrasonic Sensor and Arduino Uno
+*/
+
+int trigPinLeft = 13;                                        // Trig pin of HC-SR04(1)
+int echoPinLeft = 12;                                        // Echo pin of HC-SR04(1)
+
+int trigPinRight = 10;                                       // Trig pin of HC-SR04(2)               
+int echoPinRight = 8;                                        // Echo pin of HC-SR04(2)
+
+int trigPinCenter = 7;                                       // Trig pin of HC-SR04(3)
+int echoPinCenter = 6;                                       // Echo pin of HC-SR04(3)
+
+int vibrationMotorLeft = 11;                                 // Leftside Vibration Motor 
+int vibrationMotorRight = 9;                                 // Rightside Vibration Motor
+int vibrationMotorCenter = 5;                                // Center Vibration Motor
+
+long pulseTimeLeft,pulseTimeRight,pulseTimeCenter,leftDistance,rightDistance,centerDistance;
+                                                             // pulseTime and Distance for 3 Ultrasonic Sensors(i.e. HC-SR04)
+float vibrationStrengthLeft,vibrationStrengthRight,vibrationStrengthCenter;
+                                                             // Strength variable for three vibration motors
+
+void setup()
+{
+  Serial.begin(9600);
+  
+  pinMode(vibrationMotorLeft, OUTPUT);                       // Set Motor pins as output
+  pinMode(vibrationMotorRight, OUTPUT);
+  pinMode(vibrationMotorCenter, OUTPUT);
+  
+  pinMode(trigPinLeft, OUTPUT);                              // Set trig pin as output
+  pinMode(echoPinLeft, INPUT);                               // Set echo pin as input to capture reflected waves
+  
+  pinMode(trigPinRight, OUTPUT);
+  pinMode(echoPinRight, INPUT);
+  
+  pinMode(trigPinCenter, OUTPUT);
+  pinMode(echoPinCenter, INPUT);
+}
+
+void loop()
+{
+  digitalWrite(trigPinLeft, LOW);
+  delayMicroseconds(5); 
+  digitalWrite(trigPinLeft, HIGH);                           // Send waves for 10 us
+  delayMicroseconds(10); 
+  digitalWrite(trigPinLeft,LOW);
+  
+  pulseTimeLeft = pulseIn(echoPinLeft,HIGH);                // Receive reflected waves
+  leftDistance = (pulseTimeLeft/2) / 29.1;                  // Convert to distance
+  vibrationStrengthLeft = 255 - ((253./335.) * leftDistance + 2);
+                                                            // Vibration increses with decrease in distance
+  digitalWrite(trigPinRight, LOW);
+  delayMicroseconds(5); 
+  digitalWrite(trigPinRight, HIGH);
+  delayMicroseconds(10); 
+  digitalWrite(trigPinRight, LOW);
+  
+  pulseTimeRight = pulseIn(echoPinRight,HIGH);
+  rightDistance = (pulseTimeRight/2) / 29.1;
+  vibrationStrengthRight = 255 - ((253./335.) * rightDistance + 2);
+  
+  digitalWrite(trigPinCenter, LOW);
+  delayMicroseconds(5); 
+  digitalWrite(trigPinCenter, HIGH);
+  delayMicroseconds(10); 
+  digitalWrite(trigPinCenter, LOW);
+  
+  pulseTimeCenter = pulseIn(echoPinCenter,HIGH);
+  centerDistance = (pulseTimeCenter/2) / 29.1;
+  vibrationStrengthCenter = 255 - ((253./335.) * centerDistance + 2);
+  
+  if(leftDistance!=0)                                       // If Condition on distance if not zero
+  {
+    analogWrite(vibrationMotorLeft, vibrationStrengthLeft); // Strength of vibration varies with distance
+  }
+  if(rightDistance!=0)
+  {
+    analogWrite(vibrationMotorRight, vibrationStrengthRight);
+  }
+  if(centerDistance!=0)
+  {
+    analogWrite(vibrationMotorCenter, vibrationStrengthCenter);
+  }
+  Serial.print("Left Distance = ");                         // Distance and Strength is printed in the serial
+  Serial.println(leftDistance);
+  Serial.print("Left = ");
+  Serial.println(vibrationStrengthLeft);
+  
+  Serial.print("Right Distance = ");
+  Serial.println(rightDistance);
+  Serial.print("Right = ");
+  Serial.println(vibrationStrengthRight);
+  
+  Serial.print("Center Distance = ");
+  Serial.println(centerDistance);
+  Serial.print("Center = ");
+  Serial.println(vibrationStrengthCenter);
+  
+  Serial.println("");
+  
+  delay(1000);                                              // Delay of 1 sec 
+}
